@@ -20,5 +20,5 @@ from api.models import Tasks
 # class ShowAll(APIView):
 def index(request):
     queryset = Tasks.objects.all()
-    data = [{'id': obj.id, 'name': obj.name} for obj in queryset]
+    data = [{'id': obj.id, 'name': obj.name, 'create_time': obj.create_time, 'status': obj.status} for obj in queryset]
     return HttpResponse(data)
