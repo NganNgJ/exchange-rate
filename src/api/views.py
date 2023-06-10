@@ -45,3 +45,13 @@ def create_currency(request):
     new_currency = Currency.objects.create(name = name, symbol = symbol)
     return JsonResponse({'data': {'id': new_currency.id, 'name': new_currency.name, 'symbol': new_currency.symbol, 'status': new_currency.status}})
 
+@api_view(['POST'])
+def adjust_currency(request):
+    adjust_id = request.data.get('id')
+    new_name = request.data.get('new_name')
+    new_symbol = request.data.get('new_symbol')
+    Currency.objects.filter(id = adjust_id).update(name = new_name, symbol = new_symbol)
+    update_currency = Currency.objects.get(id = adjust_id)
+    return JsonResponse({'data': {'id': update_currency.id, 'name': update_currency.name, 'symbol': update_currency.symbol, 'status': update_currency.status}})
+
+
