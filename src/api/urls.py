@@ -1,10 +1,9 @@
 from django.urls import path
-from api import views
 from api.views import (
-    index
+    get_tasks
 )
 
 urlpatterns = [
     # path('', apiOverview, name= 'apiOverview'),
-    path('your-task/', views.index, name='your-task'),
+    path('your-task/', get_tasks),
 ]

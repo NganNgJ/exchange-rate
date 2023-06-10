@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from rest_framework.response import Response 
 from rest_framework.decorators import api_view
 # from rest_framework.views import APIView
-from api.models import Tasks
+from api.models import Task
 from django.db.models import Q
 import json
 
@@ -17,7 +17,8 @@ import json
 #     return Response(api_urls)
 
 # class ShowAll(APIView):
-def index(request):
+@api_view(['GET'])
+def get_tasks(request):
     filters = Q()
 
     filter_name = request.GET.get('name', None)
@@ -28,6 +29,6 @@ def index(request):
     if filter_priority is not None and len(filter_priority) > 0 :
         filters &= Q(priority_id=filter_priority)
 
-    queryset = Tasks.objects.filter(filters)
+    queryset = Task.objects.filter(filters)
     data = [{'id': obj.id, 'name': obj.name, 'create_time': obj.create_time, 'status': obj.status} for obj in queryset]
     return JsonResponse({'data': data})

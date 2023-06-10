@@ -1,25 +1,20 @@
 from django.db import models
 
-class Priorities(models.Model):
-    name = models.CharField(max_length=45)
+class Priority(models.Model):
+    name = models.CharField(max_length=255)
 
     class Meta:
-        managed = False
         db_table = 'priorities'
 
-class Tasks(models.Model):
-    id = models.IntegerField(primary_key=True)
-    name = models.CharField(max_length=100)
-    create_time = models.DateTimeField()
-    complete_time = models.DateTimeField(blank=True, null=True)
-    status = models.IntegerField()
-    update_time = models.DateTimeField(blank=True, null=True)
-    due_date = models.DateTimeField(blank=True, null=True)
-    priority = models.ForeignKey(Priorities, models.DO_NOTHING, blank=True, null=True)
+class Task(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255)
+    create_time = models.DateTimeField(null=True)
+    complete_time = models.DateTimeField(null=True)
+    status = models.BooleanField(null=False, default=False)
+    update_time = models.DateTimeField(null=True)
+    due_date = models.DateTimeField(null=True)
+    priority = models.ForeignKey(Priority, on_delete=models.CASCADE, null=False)
 
     class Meta:
-        managed = False
         db_table = 'tasks'
-    
-    def __str__(self) -> str:
-        return self.name
