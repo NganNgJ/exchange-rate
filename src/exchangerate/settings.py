@@ -81,7 +81,7 @@ DATABASES = {
         # 'ENGINE': 'django.db.backends.sqlite3',
         # 'NAME': Path(BASE_DIR, 'db.sqlite3'),
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'todolist', # Tên database
+        'NAME': 'exchange_rate', # Tên database
         'USER': 'root',     # Tên người dùng
         'PASSWORD': 'password', # Mật khẩu
         'HOST': 'exchange-mysql', # Tên host của container MySQL

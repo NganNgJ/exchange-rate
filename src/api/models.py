@@ -1,20 +1,28 @@
 from django.db import models
 
-class Priority(models.Model):
-    name = models.CharField(max_length=255)
+class Currency(models.Model):
+    name = models.CharField(max_length=255, null=False, default='')
+    symbol = models.CharField(max_length=255, null=False, default='')
+    status = models.CharField(max_length=255, null=False, default='ACTIVE')
 
     class Meta:
-        db_table = 'priorities'
+        db_table = 'currencies'
 
-class Task(models.Model):
-    id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=255)
-    create_time = models.DateTimeField(null=True)
-    complete_time = models.DateTimeField(null=True)
-    status = models.BooleanField(null=False, default=False)
-    update_time = models.DateTimeField(null=True)
-    due_date = models.DateTimeField(null=True)
-    priority = models.ForeignKey(Priority, on_delete=models.CASCADE, null=False)
+class Exchangerate(models.Model):
+
+    start_currency = models.ForeignKey(Currency, on_delete=models.CASCADE, null=False, related_name='start_currency') 
+    end_currency = models.ForeignKey(Currency, on_delete=models.CASCADE, null=False,  related_name='end_currency')
+    rate = models.FloatField(null=False, default=1)
 
     class Meta:
-        db_table = 'tasks'
+        db_table = 'exchange_currency_rates'
+
+class ExchangerateHistory(models.Model):
+
+    exchange_rate = models.ForeignKey(Exchangerate, on_delete=models.CASCADE, null=False)
+    rate = models.FloatField(null=False, default=1)
+    from_date = models.DateTimeField(null=True)
+    end_date = models.DateTimeField(null=True)
+
+    class Meta:
+        db_table = 'exchange_currency_rate_histories'
