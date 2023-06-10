@@ -84,8 +84,8 @@ DATABASES = {
         'NAME': 'todolist', # Tên database
         'USER': 'root',     # Tên người dùng
         'PASSWORD': 'password', # Mật khẩu
-        'HOST': 'localhost', # Tên host của container MySQL
-        'PORT': '3308',     # Cổng kết nối
+        'HOST': 'exchange-mysql', # Tên host của container MySQL
+        # 'PORT': '3306',     # Cổng kết nối -- cùng network nên sẽ không cần PORT (nếu có thì phải lấy port của container exchange-mysql)
     }
 }
 

@@ -11,7 +11,7 @@ docker network create exchange_network
 docker run -d --name exchange-mysql -p 3308:3306 -v "D:/Sources/exchange-rate/data:/var/lib/mysql" --network exchange_network --env-file .env  mysql
 ```
 
-### Create Django project
+### Create Django project (one time)
 ```
 docker run -it --rm -v "D:/Sources/exchange-rate/src:/app" --network exchange_network python:3.7.1 bash -c "pip install django && django-admin startproject exchangerate && mv exchangerate/* /app/ && rmdir exchangerate"
 ```
@@ -23,7 +23,7 @@ docker build -t exchange .
 
 ### Create Web server
 ```
-docker run -it --rm --network exchange_network -p 8000:8000 --name exchange_web -v "D:/Sources/exchange-rate/src:/app" exchange
+docker run -it --rm -p 8000:8000 --name exchange_web -v "D:/Sources/exchange-rate/src:/app" --network exchange_network exchange
 ```
 
 
