@@ -30,7 +30,7 @@ import json
 #     data = [{'id': obj.id, 'name': obj.name, 'create_time': obj.create_time, 'status': obj.status} for obj in queryset]
 #     return JsonResponse({'data': data})
 
-
+#Currency
 @api_view(['GET'])
 def get_all_currency(request):
     filters = Q()
@@ -53,5 +53,41 @@ def adjust_currency(request):
     Currency.objects.filter(id = adjust_id).update(name = new_name, symbol = new_symbol)
     update_currency = Currency.objects.get(id = adjust_id)
     return JsonResponse({'data': {'id': update_currency.id, 'name': update_currency.name, 'symbol': update_currency.symbol, 'status': update_currency.status}})
+
+#Exchange rate
+@api_view(['GET'])
+def get_all_exchange_rate(request):
+    filters = Q()
+    exchange_rates = Exchangerate.objects.filter(filters)
+    currency_ids = list(set([rate.start_currency.id for rate in exchange_rates] + [rate.end_currency.id for rate in exchange_rates]))
+    currencies = Currency.objects.filter(id__in=currency_ids)
+    currency_name_dict = {currency.id: currency.symbol for currency in currencies}
+    data = [{'id': obj.id, 
+             'start_currency_id': obj.start_currency.id,
+             'start_currency_symbol': currency_name_dict[obj.start_currency.id],
+             'end_currency_id': obj.end_currency.id,
+             'end_currency_symbol': currency_name_dict[obj.end_currency.id],
+             'rate': obj.rate} for obj in exchange_rates]    
+    return JsonResponse({'data':data})
+
+
+@api_view(['POST'])
+def create_exchange_rate(request):
+    start_currency_id = Currency.objects.get(id = request.data.get('start_currency_id'))
+    end_currency_id = Currency.objects.get(id = request.data.get('end_currency_id'))
+    rate = request.data.get('rate')
+    if start_currency_id == end_currency_id:
+        return JsonResponse({'status' : 'False', 'message': 'The start_currency_id can not be the same as the end_currency_id'})
+    currency_exchange_rate = Exchangerate.objects.create(start_currency = start_currency_id, end_currency = end_currency_id, rate = rate )
+    return JsonResponse({'data': {'id': currency_exchange_rate.id,
+                                'start_currency_id': currency_exchange_rate.start_currency.id,
+                                'end_currency_id': currency_exchange_rate.end_currency.id,
+                                    'rate': currency_exchange_rate.rate}})
+
+@api_view(['POST'])
+def calculate_exchange_rate(request):
+    
+    pass
+
 
 
