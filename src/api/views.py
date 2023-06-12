@@ -80,14 +80,23 @@ def create_exchange_rate(request):
         return JsonResponse({'status' : 'False', 'message': 'The start_currency_id can not be the same as the end_currency_id'})
     currency_exchange_rate = Exchangerate.objects.create(start_currency = start_currency_id, end_currency = end_currency_id, rate = rate )
     return JsonResponse({'data': {'id': currency_exchange_rate.id,
-                                'start_currency_id': currency_exchange_rate.start_currency.id,
-                                'end_currency_id': currency_exchange_rate.end_currency.id,
-                                    'rate': currency_exchange_rate.rate}})
+                                   'start_currency_id': currency_exchange_rate.start_currency.id,
+                                   'end_currency_id': currency_exchange_rate.end_currency.id,
+                                   'rate': currency_exchange_rate.rate}})
 
 @api_view(['POST'])
 def calculate_exchange_rate(request):
-    
-    pass
+    start_currency = Currency.objects.get(symbol = request.data.get('start_currency'))
+    end_currency = Currency.objects.get(symbol = request.data.get('end_currency'))
+    exchange_amount = request.data.get('amount_to_exchange')
+    rate_data = Exchangerate.objects.filter(start_currency = start_currency, end_currency = end_currency).first()
+
+    if rate_data:
+        rate = rate_data.rate
+        result = { 'start_currency': start_currency.symbol, 'end_currency': end_currency.symbol, 'rate': rate,'exchange_amount': exchange_amount, 'result_amount': exchange_amount * rate}
+    else:
+        result = {'message': 'No exchange rate found for the given currencies.'}
+    return JsonResponse({'data': result})
 
 
 
