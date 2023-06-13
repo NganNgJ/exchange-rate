@@ -86,16 +86,29 @@ def create_exchange_rate(request):
 
 @api_view(['POST'])
 def calculate_exchange_rate(request):
-    start_currency = Currency.objects.get(symbol = request.data.get('start_currency'))
-    end_currency = Currency.objects.get(symbol = request.data.get('end_currency'))
+    start_currency_cal = Currency.objects.get(symbol = request.data.get('start_currency'))
+    end_currency_cal = Currency.objects.get(symbol = request.data.get('end_currency'))
     exchange_amount = request.data.get('amount_to_exchange')
-    rate_data = Exchangerate.objects.filter(start_currency = start_currency, end_currency = end_currency).first()
-
-    if rate_data:
-        rate = rate_data.rate
-        result = { 'start_currency': start_currency.symbol, 'end_currency': end_currency.symbol, 'rate': rate,'exchange_amount': exchange_amount, 'result_amount': exchange_amount * rate}
+    exchange_data = Exchangerate.objects.filter(
+                                        (Q(start_currency = start_currency_cal) | Q(end_currency = start_currency_cal)) & 
+                                        (Q(start_currency = end_currency_cal) | Q(end_currency = end_currency_cal))).first()
+    if exchange_data:
+        if start_currency_cal.id == exchange_data.start_currency.id:
+            rate = exchange_data.rate
+        elif start_currency_cal.id == exchange_data.end_currency.id:
+            rate = 1/(exchange_data.rate)
     else:
+        rate = None 
+    if rate is not None:
+        result = { 'start_currency': start_currency_cal.symbol,
+                   'end_currency': end_currency_cal.symbol,
+                    'rate': rate,
+                    'exchange_amount': exchange_amount,
+                    'result_amount': exchange_amount * rate
+                }
+    else: 
         result = {'message': 'No exchange rate found for the given currencies.'}
+    
     return JsonResponse({'data': result})
 
 

@@ -1,5 +1,16 @@
 # Exchange currency from API
-## Introduction 
+### Introduction
+This project shows how to amend data into database via api and get result (calculation of exchange rate) from api.
+### Checklist
+- [x] Create containers
+- [x] Setup Django framework
+- [x] Create API app for Exchange rate project
+- [x] Create models, urls, views for projects
+
+### Objectives:
+* Data will be updated into database via GET API
+* Show all data (can be add filters)
+* **Calculate exchange rate**
 
 ---
 ### Docker steps 
@@ -24,7 +35,7 @@ docker build -t exchange .
 docker run -it --rm -p 8000:8000 --name exchange_web -v "D:/Sources/exchange-rate/src:/app" --network exchange_network exchange
 ```
 ---
-### Migrate database
+### Migrate database (Django)
 1. Execute to container application 
 > *docker exec -it exchange_web /bin/bash*
 
