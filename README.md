@@ -47,7 +47,7 @@ docker run -it --rm -p 8000:8000 --name exchange_web -v "D:/Sources/exchange-rat
 
 4. Run makemigrations (make sure to have all Models) & add the last Django (3) into 'dependencies' 
 > - *python manage.py makemigrations*
-> - *Add dependencies = [('auth', '<last_django(3)>'),]*
+> - *Add dependencies = [('auth', '<last_django>'),]*
 
 5. Change new migrations (if any)
 

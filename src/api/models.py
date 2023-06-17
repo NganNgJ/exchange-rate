@@ -13,6 +13,7 @@ class Exchangerate(models.Model):
     start_currency = models.ForeignKey(Currency, on_delete=models.CASCADE, null=False, related_name='start_currency') 
     end_currency = models.ForeignKey(Currency, on_delete=models.CASCADE, null=False,  related_name='end_currency')
     rate = models.FloatField(null=False, default=1)
+    created_at = models.DateTimeField(null=True)
 
     class Meta:
         db_table = 'exchange_currency_rates'
