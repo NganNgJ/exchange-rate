@@ -5,7 +5,8 @@ from api.views import (
     adjust_currency,
     get_all_exchange_rate,
     create_exchange_rate,
-    calculate_exchange_rate
+    calculate_exchange_rate,
+    adjust_exchange_rate
 )
 
 urlpatterns = [
@@ -16,6 +17,6 @@ urlpatterns = [
     path('all-exchange-rate/', get_all_exchange_rate),
     path('create-exchange-rate/', create_exchange_rate),
     path('calculate-exchange-rate/', calculate_exchange_rate),
-
-    
+    path('adjust-exchange-rate/', adjust_exchange_rate),
+ 
 ]

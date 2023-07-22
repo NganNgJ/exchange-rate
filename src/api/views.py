@@ -8,6 +8,9 @@ from api.models import (
     Exchangerate,
     ExchangerateHistory,
 )
+from api.utils import (
+    get_new_datetime
+)
 from django.db.models import Q
 import json
 import datetime
@@ -65,71 +68,97 @@ def get_all_exchange_rate(request):
     currencies = Currency.objects.filter(id__in=currency_ids)
     currency_name_dict = {currency.id: currency.symbol for currency in currencies}
 
-    data = [{'id': obj.id, 
-             'start_currency_id': obj.start_currency.id,
-             'start_currency_symbol': currency_name_dict[obj.start_currency.id],
-             'end_currency_id': obj.end_currency.id,
-             'end_currency_symbol': currency_name_dict[obj.end_currency.id],
-             'rate': obj.rate,
-             'last_updated_time': obj.created_at} for obj in exchange_rates]    
+    data = []
+    for exchange_rate in exchange_rates:
+        data.append(
+            {
+                'id': exchange_rate.id, 
+                'start_currency_id': exchange_rate.start_currency.id,
+                'start_currency_symbol': currency_name_dict[exchange_rate.start_currency.id],
+                'end_currency_id': exchange_rate.end_currency.id,
+                'end_currency_symbol': currency_name_dict[exchange_rate.end_currency.id],
+                'rate': exchange_rate.rate,
+                'last_updated_time': exchange_rate.created_at
+             }
+        )
     return JsonResponse({'data':data})
 
 
 @api_view(['POST'])
 def create_exchange_rate(request):
-    vn_tz = pytz.timezone('Asia/Ho_Chi_Minh')  # Tạo đối tượng múi giờ Việt Nam
-    vn_time = datetime.datetime.now(vn_tz)  # Chuyển đổi thời gian hiện tại sang múi giờ Việt Nam
-    vn_now = vn_time.strftime('%Y-%m-%d %H:%M:%S')  # Convert sang chuỗi theo định dạng '%Y-%m-%d %H:%M:%S'
-
-
-    start_currency_id = Currency.objects.get(id = request.data.get('start_currency_id'))
-    end_currency_id = Currency.objects.get(id = request.data.get('end_currency_id'))
+    start_currency_id = request.data.get('start_currency_id')
+    start_currency = Currency.objects.get(id = start_currency_id)
+    if start_currency is None:
+        return JsonResponse({'message': 'No exchange rate found for the given currencies.'})
+    
+    end_currency_id = request.data.get('end_currency_id')
+    end_currency = Currency.objects.get(id = end_currency_id)
+    if end_currency is None:
+        return JsonResponse({'message': 'No exchange rate found for the given currencies.'})
+    
     rate = request.data.get('rate')
 
     if start_currency_id == end_currency_id:
         return JsonResponse({'status' : 'False', 'message': 'The start_currency_id can not be the same as the end_currency_id'})
-    currency_exchange_rate = Exchangerate.objects.create(start_currency = start_currency_id, end_currency = end_currency_id, rate = rate, created_at = vn_now)
-    last_history = ExchangerateHistory.objects.filter(exchange_rate_id = currency_exchange_rate.id).last()
-    if last_history is None:
-        currency_log = ExchangerateHistory.objects.create(exchange_rate_id = currency_exchange_rate.id, rate = rate, from_date = vn_now)
-    return JsonResponse({'data': {'id': currency_exchange_rate.id,
-                                   'start_currency_id': currency_exchange_rate.start_currency.id,
-                                   'end_currency_id': currency_exchange_rate.end_currency.id,
-                                   'rate': currency_exchange_rate.rate,
-                                   'created_at': currency_exchange_rate.created_at
-                                   }
-                            }
-                        )
+    currency_exchange_rate = Exchangerate.objects.create(start_currency = start_currency, end_currency = end_currency, rate = rate, created_at = get_new_datetime())
+    # 
+    # if last_history is None:
+    #     ExchangerateHistory.objects.create(exchange_rate_id = currency_exchange_rate.id, rate = rate, from_date = vn_now)
+    return JsonResponse(
+        {
+            'data': {
+                'id': currency_exchange_rate.id,
+                'start_currency_id': currency_exchange_rate.start_currency_id,
+                'end_currency_id': currency_exchange_rate.end_currency_id,
+                'rate': currency_exchange_rate.rate,
+                'created_at': currency_exchange_rate.created_at
+            }
+        }
+    )
+
+@api_view(['PUT'])
+def adjust_exchange_rate(request):
+    exchange_rate_id = request.data.get('exchange_rate_id')
+    exchange_rate = Exchangerate.objects.get(id = exchange_rate_id)
+    if exchange_rate is None: 
+        return JsonResponse({'status' : 'False', 'message': 'This exchange currency does not exist'})
+    new_rate = request.data.get('new_rate')
+    if new_rate is None: 
+        return JsonResponse({'status' : 'False', 'message': 'The new rate is none'})
+    new_history_from_time = exchange_rate.created_at
+    last_history = ExchangerateHistory.objects.filter(exchange_rate_id = exchange_rate.id).order_by('-from_date').first()
+    if last_history is not None:
+        new_history_from_time = last_history.end_date
+    ExchangerateHistory.objects.create(exchange_rate_id = exchange_rate.id, rate = new_rate, from_date = new_history_from_time ,end_date = get_new_datetime())
+    exchange_rate.rate = new_rate
+    exchange_rate.save()
+
+    return JsonResponse(
+        {
+            'data': {
+                'id': exchange_rate.id,
+                'new_rate': new_rate
+        }
+    })
+    
 
 
-@api_view(['POST'])
+@api_view(['GET'])
 def calculate_exchange_rate(request):
-    start_currency_cal = Currency.objects.get(symbol = request.data.get('start_currency'))
-    end_currency_cal = Currency.objects.get(symbol = request.data.get('end_currency'))
-    exchange_amount = request.data.get('amount_to_exchange')
-    exchange_data = Exchangerate.objects.filter(
-                                        (Q(start_currency = start_currency_cal) | Q(end_currency = start_currency_cal)) & 
-                                        (Q(start_currency = end_currency_cal) | Q(end_currency = end_currency_cal))).order_by('-id').first()
-    if exchange_data:
-        if start_currency_cal.id == exchange_data.start_currency.id:
-            rate = exchange_data.rate
-        elif start_currency_cal.id == exchange_data.end_currency.id:
-            rate = 1/(exchange_data.rate)
-    else:
-        rate = None 
-    if rate is not None:
-        result = { 'start_currency': start_currency_cal.symbol,
-                   'end_currency': end_currency_cal.symbol,
-                    'rate': rate,
-                    'exchange_amount': exchange_amount,
-                    'result_amount': exchange_amount * rate
-                }
-    else: 
-        result = {'message': 'No exchange rate found for the given currencies.'}
+    exchange_id = request.GET.get('exchange_id')
+    exchange_rate = Exchangerate.objects.get(id = exchange_id)
+    if exchange_rate is None: 
+        return JsonResponse({'status' : 'False', 'message': 'This exchange currency does not exist'})
+    exchange_amount = request.GET.get('amount_to_exchange')
+    exchange_amount = float(exchange_amount)
+    is_revert = request.GET.get('is_revert')
+                                        
+    if exchange_rate is None:
+        return JsonResponse({'message': 'No exchange rate found for the given currencies.'})
+    rate = exchange_rate.rate if is_revert == '0' else 1 / (exchange_rate.rate)
+    result = {  
+                'rate': rate,
+                'result_amount': exchange_amount * rate
+            }
     
     return JsonResponse({'data': result})
-
-
-
-
-
