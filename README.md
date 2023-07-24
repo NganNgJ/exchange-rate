@@ -6,6 +6,7 @@ This project shows how to amend data into database via api and get result (calcu
 - [x] Setup Django framework
 - [x] Create API app for Exchange rate project
 - [x] Create models, urls, views for projects
+- [x] Create historical data when the exchange rate is updated
 
 ### Objectives:
 * Data will be updated into database via GET API

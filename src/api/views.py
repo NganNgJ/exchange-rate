@@ -8,6 +8,12 @@ from api.models import (
     Exchangerate,
     ExchangerateHistory,
 )
+from api.serializers import (
+    CurrencySerializer,
+    CurrencyWithExchangeRatesSerializer,
+    ExchangerateSerializer,
+    SimpleExchangerateSerializer
+)
 from api.utils import (
     get_new_datetime
 )
@@ -40,15 +46,14 @@ import pytz
 def get_all_currency(request):
     filters = Q()
     currencies = Currency.objects.filter(filters)
-    data = [{'id': obj.id, 'name': obj.name, 'symbol': obj.symbol, 'status': obj.status} for obj in currencies]    
-    return JsonResponse({'data':data})
+    return JsonResponse({'data': CurrencyWithExchangeRatesSerializer(currencies, many=True).data})
 
 @api_view(['POST'])
 def create_currency(request):
     name = request.data.get('name')
     symbol = request.data.get('symbol')
     new_currency = Currency.objects.create(name = name, symbol = symbol)
-    return JsonResponse({'data': {'id': new_currency.id, 'name': new_currency.name, 'symbol': new_currency.symbol, 'status': new_currency.status}})
+    return JsonResponse({'data': CurrencySerializer(new_currency).data})
 
 @api_view(['POST'])
 def adjust_currency(request):
@@ -57,7 +62,7 @@ def adjust_currency(request):
     new_symbol = request.data.get('new_symbol')
     Currency.objects.filter(id = adjust_id).update(name = new_name, symbol = new_symbol)
     update_currency = Currency.objects.get(id = adjust_id)
-    return JsonResponse({'data': {'id': update_currency.id, 'name': update_currency.name, 'symbol': update_currency.symbol, 'status': update_currency.status}})
+    return JsonResponse({'data': CurrencySerializer(update_currency).data})
 
 #Exchange rate
 @api_view(['GET'])
@@ -68,20 +73,18 @@ def get_all_exchange_rate(request):
     currencies = Currency.objects.filter(id__in=currency_ids)
     currency_name_dict = {currency.id: currency.symbol for currency in currencies}
 
-    data = []
-    for exchange_rate in exchange_rates:
-        data.append(
-            {
-                'id': exchange_rate.id, 
-                'start_currency_id': exchange_rate.start_currency.id,
-                'start_currency_symbol': currency_name_dict[exchange_rate.start_currency.id],
-                'end_currency_id': exchange_rate.end_currency.id,
-                'end_currency_symbol': currency_name_dict[exchange_rate.end_currency.id],
-                'rate': exchange_rate.rate,
-                'last_updated_time': exchange_rate.created_at
-             }
-        )
-    return JsonResponse({'data':data})
+    # data = []
+    # for exchange_rate in exchange_rates:
+    #     data.append(
+    #         {
+    #             'id': exchange_rate.id, 
+    #             'start_currency': CurrencySerializer(exchange_rate.start_currency).data,
+    #             'end_currency': CurrencySerializer(exchange_rate.end_currency).data,
+    #             'rate': exchange_rate.rate,
+    #             'last_updated_time': exchange_rate.created_at
+    #          }
+    #     )
+    return JsonResponse({'data': ExchangerateSerializer(exchange_rates, many=True).data})
 
 
 @api_view(['POST'])
@@ -101,20 +104,19 @@ def create_exchange_rate(request):
     if start_currency_id == end_currency_id:
         return JsonResponse({'status' : 'False', 'message': 'The start_currency_id can not be the same as the end_currency_id'})
     currency_exchange_rate = Exchangerate.objects.create(start_currency = start_currency, end_currency = end_currency, rate = rate, created_at = get_new_datetime())
-    # 
-    # if last_history is None:
-    #     ExchangerateHistory.objects.create(exchange_rate_id = currency_exchange_rate.id, rate = rate, from_date = vn_now)
-    return JsonResponse(
-        {
-            'data': {
-                'id': currency_exchange_rate.id,
-                'start_currency_id': currency_exchange_rate.start_currency_id,
-                'end_currency_id': currency_exchange_rate.end_currency_id,
-                'rate': currency_exchange_rate.rate,
-                'created_at': currency_exchange_rate.created_at
-            }
-        }
-    )
+
+    # return JsonResponse(
+    #     {
+    #         'data': {
+    #             'id': currency_exchange_rate.id,
+    #             'start_currency_id': currency_exchange_rate.start_currency_id,
+    #             'end_currency_id': currency_exchange_rate.end_currency_id,
+    #             'rate': currency_exchange_rate.rate,
+    #             'created_at': currency_exchange_rate.created_at
+    #         }
+    #     }
+    # )
+    return JsonResponse({'data': SimpleExchangerateSerializer(currency_exchange_rate).data})
 
 @api_view(['PUT'])
 def adjust_exchange_rate(request):
