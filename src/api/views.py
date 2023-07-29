@@ -12,7 +12,7 @@ from api.serializers import (
     CurrencySerializer,
     CurrencyWithExchangeRatesSerializer,
     ExchangerateSerializer,
-    SimpleExchangerateSerializer
+    SimpleExchangerateSerializer,
 )
 from api.utils import (
     get_new_datetime
@@ -164,3 +164,4 @@ def calculate_exchange_rate(request):
             }
     
     return JsonResponse({'data': result})
+    

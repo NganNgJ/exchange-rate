@@ -8,7 +8,7 @@ class CurrencySerializer(serializers.ModelSerializer):
     class Meta:
         model = Currency
         fields = '__all__'
-        
+
 
 class ExchangerateSerializer(serializers.ModelSerializer):
     start_currency = CurrencySerializer()
@@ -31,3 +31,5 @@ class CurrencyWithExchangeRatesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Currency
         fields = '__all__'
+
+
