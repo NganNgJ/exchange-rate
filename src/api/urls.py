@@ -1,5 +1,9 @@
-from django.urls import path
+from rest_framework import routers
+from django.urls import path, include
 from api.views import (
+    CurrencyViewSet,
+    ExchangerateHistoryViewset,
+    ExchangerateViewset,
     get_all_currency,
     create_currency,
     adjust_currency,
@@ -9,7 +13,13 @@ from api.views import (
     adjust_exchange_rate
 )
 
+router = routers.DefaultRouter()
+router.register(r'currencies', CurrencyViewSet)
+router.register(r'exchangerate-histories',ExchangerateHistoryViewset)
+router.register(r'exchangerates',ExchangerateViewset)
+
 urlpatterns = [
+    path('', include(router.urls)),
     # path('', apiOverview, name= 'apiOverview'),
     path('all-currencies/', get_all_currency),
     path('create-currency/', create_currency),

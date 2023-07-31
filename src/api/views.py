@@ -2,6 +2,7 @@ from django.http import HttpResponse
 from django.http import JsonResponse
 from rest_framework.response import Response 
 from rest_framework.decorators import api_view
+from rest_framework import viewsets
 # from rest_framework.views import APIView
 from api.models import (
     Currency,
@@ -13,6 +14,7 @@ from api.serializers import (
     CurrencyWithExchangeRatesSerializer,
     ExchangerateSerializer,
     SimpleExchangerateSerializer,
+    ExchangerateHistorySerializer
 )
 from api.utils import (
     get_new_datetime
@@ -40,6 +42,25 @@ import pytz
 #     # prio_name = first_task.priority.name
 #     data = [{'id': obj.id, 'name': obj.name, 'create_time': obj.create_time, 'status': obj.status} for obj in queryset]
 #     return JsonResponse({'data': data})
+
+class CurrencyViewSet(viewsets.ModelViewSet):
+    serializer_class = CurrencySerializer
+    queryset = Currency.objects.all().order_by('-id')
+
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)
+
+class ExchangerateHistoryViewset(viewsets.ModelViewSet):
+    serializer_class = ExchangerateHistorySerializer
+    queryset = ExchangerateHistory.objects.all().order_by('-id')
+
+
+class ExchangerateViewset(viewsets.ModelViewSet):
+    serializer_class = ExchangerateSerializer
+    queryset = Exchangerate.objects.all().order_by('-id')
+
+
+
 
 #Currency
 @api_view(['GET'])
@@ -85,6 +106,7 @@ def get_all_exchange_rate(request):
     #          }
     #     )
     return JsonResponse({'data': ExchangerateSerializer(exchange_rates, many=True).data})
+
 
 
 @api_view(['POST'])
