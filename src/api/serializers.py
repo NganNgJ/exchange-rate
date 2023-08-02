@@ -42,9 +42,9 @@ class ExchangerateSerializer(serializers.ModelSerializer):
         
         if start_currency_id == end_currency_id:
             return JsonResponse({'status' : 'False', 'message': 'The start_currency_id can not be the same as the end_currency_id'})
-        exchange_rate = Exchangerate.objects.filter(start_currency_id = start_currency_id, end_currency_id = end_currency_id)
-        exchange_rate_id = exchange_rate[0].id
-        new_history_from_time = exchange_rate[0].created_at
+        exchange_rate = Exchangerate.objects.get(start_currency_id = start_currency_id, end_currency_id = end_currency_id)
+        exchange_rate_id = exchange_rate.id
+        new_history_from_time = exchange_rate.created_at
         last_history = ExchangerateHistory.objects.filter(exchange_rate_id = exchange_rate_id).order_by('-from_date').first()
         if last_history is not None:
             new_history_from_time = last_history.end_date

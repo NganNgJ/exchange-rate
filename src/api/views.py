@@ -45,10 +45,17 @@ import pytz
 
 class CurrencyViewSet(viewsets.ModelViewSet):
     serializer_class = CurrencySerializer
-    queryset = Currency.objects.all().order_by('-id')
+    queryset = Currency.objects.filter(status = 'ACTIVE').order_by('-id')
+    
 
     def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
+        currency_id = self.kwargs['pk']
+        currency = Currency.objects.get(id = currency_id)
+        if currency.status == 'INACTIVE':
+            return JsonResponse({'message': 'This currency is already deleted'})
+        currency.status == 'INACTIVE'
+        currency.save()
+        return JsonResponse({'message': 'You deleted successfully'})
 
 class ExchangerateHistoryViewset(viewsets.ModelViewSet):
     serializer_class = ExchangerateHistorySerializer
