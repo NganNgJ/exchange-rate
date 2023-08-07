@@ -44,9 +44,12 @@ import pytz
 #     return JsonResponse({'data': data})
 
 class CurrencyViewSet(viewsets.ModelViewSet):
-    serializer_class = CurrencySerializer
+    # serializer_class = CurrencySerializer
     queryset = Currency.objects.filter(status = 'ACTIVE').order_by('-id')
     
+    def list(self, request):
+        serializer = CurrencySerializer(self.queryset, many=True)
+        return Response(serializer.data)
 
     def destroy(self, request, *args, **kwargs):
         currency_id = self.kwargs['pk']
