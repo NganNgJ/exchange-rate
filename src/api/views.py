@@ -44,10 +44,11 @@ import pytz
 #     return JsonResponse({'data': data})
 
 class CurrencyViewSet(viewsets.ModelViewSet):
-    # serializer_class = CurrencySerializer
-    queryset = Currency.objects.filter(status = 'ACTIVE').order_by('-id')
+    serializer_class = CurrencySerializer
+    queryset = Currency.objects.all().order_by('-id')
     
     def list(self, request):
+        currency_list = self.queryset.filter(status = 'ACTIVE').order_by('-id')
         serializer = CurrencySerializer(self.queryset, many=True)
         return Response(serializer.data)
 
@@ -56,7 +57,7 @@ class CurrencyViewSet(viewsets.ModelViewSet):
         currency = Currency.objects.get(id = currency_id)
         if currency.status == 'INACTIVE':
             return JsonResponse({'message': 'This currency is already deleted'})
-        currency.status == 'INACTIVE'
+        currency.status = 'INACTIVE'
         currency.save()
         return JsonResponse({'message': 'You deleted successfully'})
 

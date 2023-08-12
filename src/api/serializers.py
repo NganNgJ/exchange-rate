@@ -33,22 +33,21 @@ class ExchangerateSerializer(serializers.ModelSerializer):
         return currency_exchange_rate
     
     def update(self, instance, validated_data):
-        instance.rate = validated_data.get('rate', instance.rate)
-        instance.save()
-
         start_currency_id = validated_data['start_currency_id']
         end_currency_id = validated_data['end_currency_id']
         new_rate = validated_data['rate']
         
+        instance.rate = new_rate
+        instance.save()
+
         if start_currency_id == end_currency_id:
             return JsonResponse({'status' : 'False', 'message': 'The start_currency_id can not be the same as the end_currency_id'})
-        exchange_rate = Exchangerate.objects.get(start_currency_id = start_currency_id, end_currency_id = end_currency_id)
-        exchange_rate_id = exchange_rate.id
-        new_history_from_time = exchange_rate.created_at
-        last_history = ExchangerateHistory.objects.filter(exchange_rate_id = exchange_rate_id).order_by('-from_date').first()
+        
+        new_history_from_time = instance.created_at
+        last_history = ExchangerateHistory.objects.filter(exchange_rate_id = instance.id).order_by('-from_date').first()
         if last_history is not None:
             new_history_from_time = last_history.end_date
-        ExchangerateHistory.objects.create(exchange_rate_id = exchange_rate_id, rate = new_rate, from_date = new_history_from_time ,end_date = get_new_datetime())
+        ExchangerateHistory.objects.create(exchange_rate_id = instance.id, rate = new_rate, from_date = new_history_from_time ,end_date = get_new_datetime())
         return instance
     class Meta:
         model = Exchangerate
