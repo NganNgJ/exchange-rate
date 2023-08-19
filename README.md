@@ -54,3 +54,5 @@ docker run -it --rm -p 8000:8000 --name exchange_web -v "D:/Sources/exchange-rat
 
 6. Run Migrate to update any new changes form Models (from migrations files at step 4)
 > *python manage.py migrate*
+
+### End of project
